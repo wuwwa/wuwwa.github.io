@@ -1,0 +1,140 @@
+---
+import Projects from "../components/Projects.astro";
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Wilson Wu — software engineer working on secure cloud infrastructure and independent software."
+    />
+    <title>Wilson Wu</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link
+      rel="preload"
+      href="/fonts/instrument-sans.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+  </head>
+  <body class="dark">
+    <script is:inline>
+      // Restore the saved theme before first paint.
+      try {
+        const saved = localStorage.getItem("pond-theme");
+        document.body.classList.toggle(
+          "dark",
+          saved
+            ? saved === "dark"
+            : matchMedia("(prefers-color-scheme: dark)").matches,
+        );
+      } catch {
+        document.body.classList.toggle(
+          "dark",
+          matchMedia("(prefers-color-scheme: dark)").matches,
+        );
+      }
+    </script>
+    <canvas id="pond" aria-hidden="true"></canvas>
+    <nav class="desktop-nav" aria-label="Main" data-koi-avoid>
+      <a href="/" aria-current="page">Pond</a>
+      <a href="/#projects">Projects</a>
+      <a href="https://github.com/wuwwa" target="_blank" rel="noopener noreferrer">GitHub</a>
+      <a href="https://www.linkedin.com/in/wwu331" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+      <button id="theme" aria-label="Switch to light mode"></button>
+    </nav>
+    <div class="mobile-header" data-koi-ignore>
+      <button
+        id="menu-toggle"
+        aria-expanded="false"
+        aria-controls="mobile-menu"
+      >
+        <span>Menu</span>
+        <span class="menu-icon" aria-hidden="true">
+          <svg class="grid-icon" viewBox="0 0 16 16">
+            <circle cx="4" cy="4" r="1.5" />
+            <circle cx="12" cy="4" r="1.5" />
+            <circle cx="4" cy="12" r="1.5" />
+            <circle cx="12" cy="12" r="1.5" />
+          </svg>
+          <svg class="close-icon" viewBox="0 0 16 16" fill="none">
+            <path d="M3 3L13 13M13 3L3 13" />
+          </svg>
+        </span>
+      </button>
+    </div>
+    <div id="mobile-menu" hidden inert data-koi-ignore>
+      <div class="mobile-menu-links" aria-label="Mobile navigation">
+        <a href="/" aria-current="page">Home</a>
+        <a href="/#projects">Projects</a>
+        <a href="https://github.com/wuwwa" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="https://www.linkedin.com/in/wwu331" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+      </div>
+      <div class="mobile-menu-footer">
+        <a
+          href="https://www.linkedin.com/in/wwu331"
+          target="_blank"
+          rel="noopener noreferrer"
+          >LinkedIn
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+          >
+            <path d="M14 3h7v7m0-7L10 14M10 3H3v18h18v-7" /></svg
+        ></a>
+        <a
+          href="https://github.com/wuwwa"
+          target="_blank"
+          rel="noopener noreferrer"
+          >GitHub
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+          >
+            <path
+              d="M9 19c-4 1-4-2-6-2m12 5v-4c0-1 .2-2-1-3 3 0 6-1 6-6 0-1-1-3-2-3 0-1 0-3-1-3l-4 2H9L5 3c-1 0-1 2-1 3-1 1-2 2-2 4 0 4 3 5 6 5-1 1-1 2-1 3v4"
+            /></svg
+        ></a>
+        <button id="mobile-theme" aria-label="Switch to light mode"></button>
+      </div>
+    </div>
+    <div class="stats" data-koi-avoid aria-hidden="true">
+      <div id="fish-count">6</div>
+      <div id="food-count">0</div>
+    </div>
+    <main tabindex="-1">
+      <blockquote data-koi-avoid>
+        in an ocean of gluttony,<br />cast a fine net<span
+          class="cursor"
+          aria-hidden="true"
+        ></span>
+      </blockquote>
+      <section class="intro" data-koi-avoid aria-label="Introduction">
+        <h1>Hey, I'm Wilson.</h1>
+        <p>Software engineer at{" "}<a class="citation" data-source="northrop" href="https://www.northropgrumman.com/" target="_blank" rel="noopener noreferrer">Northrop Grumman</a>, working on secure cloud systems.</p>
+        <p>Previously an IT specialist at the{" "}<a class="citation" data-source="doj" href="https://www.justice.gov/" target="_blank" rel="noopener noreferrer">U.S. Department of Justice</a>.</p>
+        <p>Cloud infrastructure, software security, and product engineering.</p>
+        <p class="social">
+          <a href="https://github.com/wuwwa" target="_blank" rel="noopener noreferrer">github</a><span> / </span
+          ><a href="https://www.linkedin.com/in/wwu331" target="_blank" rel="noopener noreferrer">linkedin</a>
+        </p>
+      </section>
+    </main>
+    <Projects />
+    <div
+      id="citation-card"
+      aria-label="Experience details"
+      hidden
+      inert
+      data-koi-ignore
+    ></div>
+    <script>import "../main.js";</script>
+  </body>
+</html>

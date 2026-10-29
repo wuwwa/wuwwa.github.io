@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.reference/
+*.log
+
+.astro/
+.playwright-cli/
+output/
+.env
+.env.*
+!.env.example

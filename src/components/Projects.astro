@@ -1,0 +1,19 @@
+---
+import { projects, coverMarkup } from '../data/projects.js';
+---
+<section id="projects" aria-label="Selected projects" tabindex="0" hidden data-koi-ignore>
+  <div class="project-rail">
+    {projects.map(p => <article class="project" data-project={p.id}>
+      <a class:list={['project-art',p.id]} href={p.site} target="_blank" rel="noopener noreferrer" draggable="false" aria-label={`Visit ${p.name}`}>
+        <div class="cover-content" set:html={coverMarkup(p.id)}></div>
+        <span class="project-open" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 18 18 6M6 6h12v12" /></svg></span>
+      </a>
+      <h2><a href={p.site} target="_blank" rel="noopener noreferrer" draggable="false">{p.name}</a>{p.fallback && <a class="project-backup" href={p.fallback} target="_blank" rel="noopener noreferrer" draggable="false" aria-label={`${p.name} backup site`}>backup ↗</a>}</h2>
+      <p>{p.line}</p>
+    </article>)}
+  </div>
+  <div class="gallery-controls">
+    <div class="project-index" role="group" aria-label="Choose a project">{projects.map(p => <button data-go={p.id} aria-label={`Show ${p.name}`}><span></span></button>)}</div>
+    <div class="gallery-arrows"><button class="previous-project" aria-label="Previous project">←</button><button class="next-project" aria-label="Next project">→</button></div>
+  </div>
+</section>

@@ -1,0 +1,402 @@
+[hidden] {
+  display: none !important;
+}
+.view-projects:not(.is-switching) #pond {
+  display: none;
+}
+.view-projects .stats {
+  visibility: hidden;
+}
+#projects {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  height: 100dvh;
+  padding-top: max(108px, 18.2vh);
+  overflow: hidden;
+  cursor: grab;
+  touch-action: pan-y pinch-zoom;
+  outline: none;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --project-width: min(670px, 70vw);
+  --gallery-gutter: 15vw;
+}
+.project-rail {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0
+    max(
+      var(--gallery-gutter),
+      calc(100% - var(--gallery-gutter) - var(--project-width))
+    )
+    18px var(--gallery-gutter);
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+  touch-action: pan-y pinch-zoom;
+  user-select: none;
+}
+.project-rail::-webkit-scrollbar {
+  display: none;
+}
+.project {
+  flex: 0 0 var(--project-width);
+  min-width: 0;
+}
+.project-art {
+  position: relative;
+  display: block;
+  aspect-ratio: 1732/910;
+  overflow: hidden;
+  text-decoration: none;
+  isolation: isolate;
+  -webkit-tap-highlight-color: transparent;
+}
+.project-art::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1px solid #00000012;
+  pointer-events: none;
+}
+.project-open {
+  position: absolute;
+  z-index: 2;
+  top: 18px;
+  right: 18px;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #f5f4f1;
+  color: #262523;
+  box-shadow: 0 2px 10px #00000012;
+  opacity: 0;
+  transform: translate(-5px, 5px) scale(0.9);
+  transition:
+    opacity 180ms ease,
+    transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+.project-open svg {
+  width: 21px;
+  height: 21px;
+}
+.project:has(a:focus-visible) .project-open {
+  opacity: 1;
+  transform: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  #projects:not(.is-dragging) .project:hover .project-open {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  #projects:not(.is-dragging) .project:hover .scope-json {
+    transform: translateX(4px);
+  }
+  #projects:not(.is-dragging) .project:hover .fuppo-jelly {
+    transform: translateY(-4px) rotate(-3deg);
+  }
+  #projects:not(.is-dragging) .project:hover .fuppo-astronaut {
+    transform: translateY(3px) rotate(3deg);
+  }
+  #projects:not(.is-dragging) .project:hover .fuppo-wizard {
+    transform: translateY(-3px) rotate(0deg);
+  }
+  #projects:not(.is-dragging) .project:hover .mel-orb {
+    transform: translateY(-4px);
+  }
+}
+@media (hover: none) {
+  .project-open {
+    opacity: 1;
+    transform: none;
+  }
+}
+.cover-content {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.project-art img {
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.project h2 {
+  margin: 16px 0 0;
+  font:
+    500 17px/1.5 "Instrument Sans",
+    sans-serif;
+}
+.project h2 a {
+  text-decoration: none;
+}
+.project > p {
+  font:
+    400 14px/1.6 "Instrument Sans",
+    sans-serif;
+  opacity: 0.58;
+  margin-top: 5px;
+  max-width: 48ch;
+}
+#projects.is-dragging {
+  cursor: grabbing;
+}
+.is-dragging .project-art,
+.is-dragging h2 a {
+  cursor: grabbing;
+}
+.gallery-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 15vw 24px;
+}
+.project-index {
+  display: flex;
+  gap: 1px;
+}
+.project-index button {
+  height: 44px;
+  width: 30px;
+  border: 0;
+  background: none;
+  padding: 8px;
+  display: grid;
+  place-items: center;
+}
+.project-index button span {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--fg);
+  opacity: 0.25;
+  transition:
+    opacity 0.2s,
+    transform 0.2s;
+}
+.project-index button[aria-pressed="true"] span {
+  opacity: 0.85;
+  transform: scale(1.6);
+}
+.gallery-arrows {
+  display: flex;
+  gap: 12px;
+}
+.gallery-arrows button {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  background: none;
+  font-size: 20px;
+}
+.gallery-arrows button:disabled {
+  opacity: 0.2;
+  cursor: default;
+}
+.chromescope {
+  background: #20282d;
+  color: #e7eceb;
+  container-type: inline-size;
+}
+.scope-json {
+  position: absolute;
+  left: 7%;
+  right: 7%;
+  top: 50%;
+  translate: 0 -50%;
+  margin: 0;
+  color: #839295;
+  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+  font:
+    400 clamp(8px, 1.9cqw, 13px)/1.5 "Geist Mono",
+    monospace;
+  tab-size: 2;
+}
+.scope-json code {
+  font: inherit;
+}
+.json-key {
+  color: #a8cbd1;
+}
+.json-string {
+  color: #d9c79e;
+}
+.json-number {
+  color: #c4b2d9;
+}
+.fuppo {
+  background: #e8e8f7;
+  color: #273a76;
+}
+.fuppo-wordmark {
+  position: absolute;
+  left: 8%;
+  top: 13%;
+  font:
+    600 clamp(25px, 3vw, 36px)/1 Inter,
+    sans-serif;
+  letter-spacing: -0.055em;
+}
+.fuppo-mascot {
+  position: absolute;
+  aspect-ratio: 1;
+  background-size: 300% 200%;
+  background-repeat: no-repeat;
+  filter: drop-shadow(0 8px 10px #263e7910);
+  transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.fuppo-jelly {
+  width: 35%;
+  left: 9%;
+  bottom: 1%;
+  background-image: url("/projects/fuppo-everyday.png");
+  background-position: 50% 0%;
+  transform: rotate(-7deg);
+}
+.fuppo-astronaut {
+  width: 31%;
+  left: 37%;
+  top: -1%;
+  background-image: url("/projects/fuppo-mascot.png");
+  background-position: 50% 0%;
+  transform: rotate(7deg);
+}
+.fuppo-wizard {
+  width: 39%;
+  right: 1%;
+  bottom: -2%;
+  background-image: url("/projects/fuppo-mascot.png");
+  background-position: 100% 100%;
+  transform: rotate(-4deg);
+}
+.flightterm {
+  background: #ede5c9;
+}
+.flight-cover {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform: none;
+}
+.mel {
+  background: #173e4a;
+  color: white;
+}
+.mel-landscape {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  pointer-events: none;
+  filter: brightness(0.76);
+}
+.mel-wordmark {
+  position: absolute;
+  top: 13%;
+  left: 8%;
+  font:
+    400 48px/1 "Playfair Display",
+    serif;
+  letter-spacing: -0.055em;
+}
+.mel-orb {
+  position: absolute;
+  display: block;
+  aspect-ratio: 1;
+  width: 39%;
+  height: auto;
+  left: 46%;
+  top: 10%;
+  filter: drop-shadow(0 10px 30px #0a153550);
+  pointer-events: none;
+  transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.orb-fallback {
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at 30% 20%,
+    #f3cd8d,
+    #c88be3 35%,
+    #498784 65%,
+    #31546d
+  );
+}
+@media (min-width: 1024px) and (max-height: 720px) {
+  #projects {
+    --project-width: min(670px, 70vw, calc((100dvh - 280px) * 1.9));
+  }
+}
+@media (max-width: 1023px) {
+  #projects {
+    padding-top: max(110px, 17vh);
+    --project-width: 88vw;
+    --gallery-gutter: 6vw;
+  }
+  .project-rail {
+    gap: 12px;
+  }
+  .project h2 {
+    margin-top: 14px;
+    font-size: 16px;
+  }
+  .project > p {
+    font-size: 13px;
+    max-width: 38ch;
+    min-height: 3.3em;
+  }
+  .gallery-controls {
+    padding: 4px 6vw 20px;
+  }
+  .project-open {
+    top: 12px;
+    right: 12px;
+    width: 36px;
+    height: 36px;
+  }
+  .fuppo-wordmark {
+    font-size: 25px;
+  }
+  .mel-wordmark {
+    font-size: 34px;
+  }
+  .mel-orb {
+    top: 10%;
+    width: 41%;
+    left: 45%;
+  }
+}
+@media (max-width: 1023px) and (max-height: 700px) {
+  #projects {
+    padding-top: 100px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .project-index button span {
+    transition: none;
+  }
+}
+
+.project h2 {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+.project h2 .project-backup {
+  font-size: 10px;
+  opacity: 0.55;
+  text-decoration: underline;
+}
+.project h2 .project-backup:hover,
+.project h2 .project-backup:focus-visible {
+  opacity: 1;
+}
