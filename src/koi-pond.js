@@ -404,6 +404,26 @@ let D = {
   },
   G = "t%SX8@#",
   O = [0.25, 0.25, 0.75, 0.25, 0.25, 0.75, 0.75, 0.75];
+const warmRedTones = [
+  [[125, 36, 26], [201, 65, 36], [234, 117, 61], [249, 181, 112]],
+  [[117, 40, 28], [181, 70, 39], [224, 132, 71], [242, 192, 123]],
+  [[135, 37, 33], [201, 64, 46], [234, 105, 75], [248, 167, 122]],
+];
+const warmDarkPalette = {
+  ...D,
+  bg: [26, 25, 23],
+  white: [242, 232, 211],
+  black: [74, 69, 65],
+  fin: [211, 198, 176],
+  redTones: warmRedTones,
+};
+const warmLightPalette = {
+  ..._,
+  white: [146, 133, 116],
+  black: [46, 40, 35],
+  fin: [153, 139, 120],
+  redTones: warmRedTones,
+};
 function U(e, t) {
   let i = Math.hypot(e, t) || 1;
   return Math.abs(t) < 0.38 * i
@@ -442,7 +462,13 @@ let X = (e) => (e[0] << 16) | (e[1] << 8) | e[2],
   ];
 class V {
   setTheme(e) {
-    this.palette = e ? _ : D;
+    this.palette = this.colorMode === "warm"
+      ? e ? warmLightPalette : warmDarkPalette
+      : e ? _ : D;
+  }
+  redRamp(fish) {
+    const tones = this.palette.redTones;
+    return tones ? tones[fish.id % tones.length] : this.palette.hi;
   }
   resize(e, t, i) {
     ((this.dpr = i),
@@ -819,7 +845,7 @@ class V {
               let i = A(t, 0, 1) * (e.length - 1),
                 r = Math.min(e.length - 2, Math.floor(i));
               return K(e[r], e[r + 1], i - r);
-            })(u.hi, 0.15 + 0.8 * h + i + r + 0.35 * s);
+            })(this.redRamp(e), 0.15 + 0.8 * h + i + r + 0.35 * s);
           } else et = K(u.bg, a, I + (z - I) * h);
           if (5 === T) {
             let s = r + P,
@@ -994,7 +1020,8 @@ class V {
       );
     }
   }
-  constructor(e) {
+  constructor(e, { palette = "original" } = {}) {
+    this.colorMode = palette;
     ((this.dpr = 1),
       (this.cw = 8),
       (this.ch = 12),
@@ -1118,7 +1145,7 @@ class J {
       inside: i >= 0 && r >= 0 && i <= t.width && r <= t.height,
     };
   }
-  constructor(e, t, i) {
+  constructor(e, t, i, { palette = "original" } = {}) {
     ((this.canvas = e),
       (this.onStats = i),
       (this.world = new R()),
@@ -1195,7 +1222,7 @@ class J {
       (this.onPointerLeave = () => {
         ((this.world.pointer.active = !1), (this.world.pointer.speed = 0));
       }),
-      (this.renderer = new V(e)),
+      (this.renderer = new V(e, { palette })),
       this.renderer.setTheme(t),
       this.resizeObserver.observe(e),
       this.intersectionObserver.observe(e),
