@@ -96,7 +96,8 @@ export class KoiPond {
     let x = this.width * (0.16 + ((id * 0.61803398875 + 0.12) % 1) * 0.68);
     let y = this.height * (0.14 + ((id * 0.38196601125 + 0.28) % 1) * 0.72);
     let angle = this.range(0, Math.PI * 2);
-    if (!this.reduced) {
+    const entering = !this.reduced && (id === 1 || id === 6);
+    if (entering) {
       const inset = 24 + size * 0.12 + Math.floor(id / 4) * 8;
       const side = id % 4;
       if (side === 0) {
@@ -129,7 +130,7 @@ export class KoiPond {
       phase: this.range(0, Math.PI * 2),
       depth,
       variant: id % 6,
-      entering: !this.reduced,
+      entering,
       spine: Array.from({ length: 22 }, (_, j) => ({
         x: x - (Math.cos(angle) * size * j) / 21,
         y: y - (Math.sin(angle) * size * j) / 21,

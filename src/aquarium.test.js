@@ -2,20 +2,34 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { KoiPond } from "./aquarium/model.ts";
 
-test("fish enter from outside the viewport without jumping and survive resizing", () => {
+test("most fish are present on load, two enter from the edges, and resizing preserves them", () => {
   const pond = new KoiPond();
   pond.resize(390, 844);
   const originalFish = [...pond.fish];
+  assert.equal(pond.fish.filter((fish) => fish.entering).length, 2);
   assert.ok(
-    pond.fish.every((fish) =>
-      fish.spine.every(
-        (point) =>
-          point.x < 0 ||
-          point.x > pond.width ||
-          point.y < 0 ||
-          point.y > pond.height,
+    pond.fish
+      .filter((fish) => !fish.entering)
+      .every(
+        (fish) =>
+          fish.x > 0 &&
+          fish.x < pond.width &&
+          fish.y > 0 &&
+          fish.y < pond.height,
       ),
-    ),
+  );
+  assert.ok(
+    pond.fish
+      .filter((fish) => fish.entering)
+      .every((fish) =>
+        fish.spine.every(
+          (point) =>
+            point.x < 0 ||
+            point.x > pond.width ||
+            point.y < 0 ||
+            point.y > pond.height,
+        ),
+      ),
   );
   for (let frame = 0; frame < 900; frame++) {
     const previous = pond.fish.map((fish) => ({ x: fish.x, y: fish.y }));

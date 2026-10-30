@@ -256,6 +256,10 @@ export class PondRenderer {
   private c: C;
   private backdrop = document.createElement("canvas");
   private ink = document.createElement("canvas");
+  private glyphAtlas = document.createElement("canvas");
+  private cellHash = document.createElement("canvas");
+  private textureVersion = 0;
+  private backdropDithered = false;
   private inkContext = this.ink.getContext("2d", { willReadFrequently: true })!;
   private cell = 4;
   width = 1;
@@ -263,7 +267,7 @@ export class PondRenderer {
   ratio = 1;
   zoom = 1;
   constructor(private canvas: HTMLCanvasElement) {
-    const c = canvas.getContext("2d", { alpha: false });
+    const c = canvas.getContext("2d");
     if (!c) throw new Error("The pond needs Canvas support.");
     this.c = c;
   }
@@ -284,40 +288,88 @@ export class PondRenderer {
     this.cell = clamp(Math.min(w, h) / 95, 2.2, 5);
     this.ink.width = Math.ceil(w / this.cell);
     this.ink.height = Math.ceil(h / this.cell);
+    this.cellHash.width = this.ink.width;
+    this.cellHash.height = this.ink.height;
+    const hashes = this.cellHash.getContext("2d")!;
+    const image = hashes.createImageData(this.ink.width, this.ink.height);
+    for (let y = 0; y < this.ink.height; y++)
+      for (let x = 0; x < this.ink.width; x++) {
+        const index = (y * this.ink.width + x) * 4;
+        image.data[index] =
+          ((((x * 73 + y * 151) ^ (x * y * 7)) >>> 0) % 15) * 17;
+        image.data[index + 3] = 255;
+      }
+    hashes.putImageData(image, 0, 0);
+    const glyphSize = Math.ceil(this.cell * this.ratio);
+    this.glyphAtlas.width = glyphSize * 7;
+    this.glyphAtlas.height = glyphSize;
+    const atlas = this.glyphAtlas.getContext("2d")!;
+    atlas.font = `${this.cell * this.ratio * 1.18}px monospace`;
+    atlas.textAlign = "center";
+    atlas.textBaseline = "middle";
+    atlas.fillStyle = "#fff";
+    ["·", ":", "+", "x", "*", "#", "%"].forEach((glyph, index) =>
+      atlas.fillText(glyph, (index + 0.5) * glyphSize, glyphSize / 2),
+    );
     this.paintWater();
   }
   private paintWater() {
+    this.textureVersion++;
+    this.backdropDithered = false;
     this.water.resize(this.width, this.height, this.palette);
     const palette = pondPalettes[this.palette];
     const c = this.backdrop.getContext("2d")!;
     c.setTransform(this.ratio, 0, 0, this.ratio, 0, 0);
     const g = c.createLinearGradient(0, 0, this.width * 0.7, this.height);
-    g.addColorStop(0, palette.stops[0]);
-    g.addColorStop(0.36, palette.stops[1]);
-    g.addColorStop(1, palette.stops[2]);
+    const stops = palette.stops.map((hex) =>
+      [1, 3, 5].map((offset) => parseInt(hex.slice(offset, offset + 2), 16)),
+    );
+    for (let step = 0; step <= 32; step++) {
+      const position = step / 32,
+        t = position * position * (3 - 2 * position);
+      const color = stops[0].map(
+        (value, channel) =>
+          value * (1 - t) ** 2 +
+          2 * stops[1][channel] * t * (1 - t) +
+          stops[2][channel] * t * t,
+      );
+      g.addColorStop(position, `rgb(${color.join(",")})`);
+    }
     c.fillStyle = g;
     c.fillRect(0, 0, this.width, this.height);
-    const light = c.createRadialGradient(
-      this.width * 0.18,
-      this.height * 0.08,
-      0,
-      this.width * 0.18,
-      this.height * 0.08,
-      this.height * 0.82,
-    );
-    light.addColorStop(0, `rgba(${palette.glow},.07)`);
-    light.addColorStop(1, `rgba(${palette.glow},0)`);
-    c.fillStyle = light;
-    c.fillRect(0, 0, this.width, this.height);
+  }
+  private fallbackBackdrop() {
+    if (!this.backdropDithered) {
+      const c = this.backdrop.getContext("2d")!;
+      const image = c.getImageData(
+        0,
+        0,
+        this.backdrop.width,
+        this.backdrop.height,
+      );
+      let seed = 619831;
+      for (let index = 0; index < image.data.length; index += 4) {
+        seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+        const grain = ((seed >>> 24) / 255) * 2 - 1;
+        for (let channel = 0; channel < 3; channel++)
+          image.data[index + channel] += grain;
+      }
+      c.putImageData(image, 0, 0);
+      this.backdropDithered = true;
+    }
+    return this.backdrop;
   }
   render(model: KoiPond, aim?: Point) {
+    if (this.meshEnabled && !this.mesh) this.mesh = new PondSurfaceMesh();
     const c = this.c,
       z = this.zoom,
       dx = (this.width * (1 - z)) / 2,
       dy = (this.height * (1 - z)) / 2;
     c.setTransform(1, 0, 0, 1, 0, 0);
     c.globalAlpha = 1;
-    c.drawImage(this.backdrop, 0, 0);
+    c.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    if (!this.meshEnabled || !this.mesh?.available)
+      c.drawImage(this.fallbackBackdrop(), 0, 0);
     c.setTransform(
       this.ratio * z,
       0,
@@ -357,54 +409,12 @@ export class PondRenderer {
       ink.translate(f.x, f.y);
       ink.scale(scale, scale);
       ink.translate(-f.x, -f.y);
-      ink.filter = `blur(${depth * 0.48}px)`;
       fish(ink, f, model.time, model.reduced);
       ink.restore();
     }
-    const pixels = ink.getImageData(0, 0, this.ink.width, this.ink.height).data;
-    c.textAlign = "center";
-    c.textBaseline = "middle";
-    c.font = `${cell * 1.18}px monospace`;
-    const glyphs = ["·", ":", "+", "x", "*", "#", "%"];
-    for (let y = 0; y < this.ink.height; y++)
-      for (let x = 0; x < this.ink.width; x++) {
-        const i = (y * this.ink.width + x) * 4,
-          a = pixels[i + 3] / 255;
-        if (a < 0.025) continue;
-        const hash = ((x * 73 + y * 151) ^ (x * y * 7)) >>> 0;
-        const r = pixels[i],
-          g = pixels[i + 1],
-          b = pixels[i + 2];
-        const red = r > g * 1.22;
-        const base = red
-          ? [Math.min(255, r * 1.3), g * 0.94, b * 0.75]
-          : [
-              Math.min(255, r * 1.12),
-              Math.min(255, g * 1.1),
-              Math.min(255, b * 1.04),
-            ];
-        const haze = clamp((0.84 - a) * 0.52, 0, 0.28);
-        const color = base.map((v, j) =>
-          Math.round(v * (1 - haze) + palette.water[j] * haze),
-        );
-        c.fillStyle = `rgb(${color.join(",")})`;
-        c.globalAlpha = a * ((palette.light ? 0.36 : 0.1) + (hash % 3) * 0.025);
-        c.fillRect(x * cell, y * cell, cell * 0.94, cell * 0.94);
-        c.globalAlpha = Math.min(1, a * (1.06 + (hash % 5) * 0.025));
-        const density = Math.min(6, Math.floor(a * 6));
-        c.fillText(
-          glyphs[Math.max(0, density - (hash % 3))],
-          (x + 0.5) * cell,
-          (y + 0.5) * cell,
-        );
-      }
-    c.globalAlpha = 1;
-    const directRipples = model.ripples.slice(-3);
-    if (this.meshEnabled && !this.mesh) this.mesh = new PondSurfaceMesh();
-    const ripples = [...directRipples, ...model.rain.impacts];
+    const ripples = [...model.ripples.slice(-3), ...model.rain.impacts];
     let hasSurface = false;
     if (this.mesh?.available && this.meshEnabled) {
-      this.water.drawStillSurface(c);
       const surface = this.mesh.apply(
         this.canvas,
         this.width,
@@ -413,6 +423,12 @@ export class PondRenderer {
         model.reduced,
         ripples,
         this.palette,
+        this.ink,
+        cell,
+        this.glyphAtlas,
+        this.water.reflectionSource,
+        this.cellHash,
+        this.textureVersion,
       );
       if (surface) {
         c.save();
@@ -422,8 +438,58 @@ export class PondRenderer {
         hasSurface = true;
       }
     }
-    if (!hasSurface)
+    if (!hasSurface) {
+      c.save();
+      c.setTransform(1, 0, 0, 1, 0, 0);
+      c.globalCompositeOperation = "destination-over";
+      c.drawImage(this.fallbackBackdrop(), 0, 0);
+      c.restore();
+      const pixels = ink.getImageData(
+        0,
+        0,
+        this.ink.width,
+        this.ink.height,
+      ).data;
+      c.textAlign = "center";
+      c.textBaseline = "middle";
+      c.font = `${cell * 1.18}px monospace`;
+      const glyphs = ["·", ":", "+", "x", "*", "#", "%"];
+      for (let y = 0; y < this.ink.height; y++)
+        for (let x = 0; x < this.ink.width; x++) {
+          const i = (y * this.ink.width + x) * 4,
+            a = pixels[i + 3] / 255;
+          if (a < 0.025) continue;
+          const hash = ((x * 73 + y * 151) ^ (x * y * 7)) >>> 0;
+          const r = pixels[i],
+            g = pixels[i + 1],
+            b = pixels[i + 2];
+          const red = r > g * 1.22;
+          const base = red
+            ? [Math.min(255, r * 1.3), g * 0.94, b * 0.75]
+            : [
+                Math.min(255, r * 1.12),
+                Math.min(255, g * 1.1),
+                Math.min(255, b * 1.04),
+              ];
+          const haze = clamp((0.84 - a) * 0.52, 0, 0.28);
+          const color = base.map((v, j) =>
+            Math.round(v * (1 - haze) + palette.water[j] * haze),
+          );
+          c.fillStyle = `rgb(${color.join(",")})`;
+          c.globalAlpha =
+            a * ((palette.light ? 0.36 : 0.1) + (hash % 3) * 0.025);
+          c.fillRect(x * cell, y * cell, cell * 0.94, cell * 0.94);
+          c.globalAlpha = Math.min(1, a * (1.06 + (hash % 5) * 0.025));
+          const density = Math.min(6, Math.floor(a * 6));
+          c.fillText(
+            glyphs[Math.max(0, density - (hash % 3))],
+            (x + 0.5) * cell,
+            (y + 0.5) * cell,
+          );
+        }
+      c.globalAlpha = 1;
       this.water.drawSurface(c, model.time, model.reduced, ripples);
+    }
     this.canvas.dataset.surface = hasSurface ? "mesh" : "checkpoint";
     for (const drop of model.droplets ?? []) {
       if (drop.age < 0.28) continue;
@@ -492,6 +558,10 @@ export class PondRenderer {
       this.backdrop.height =
       this.ink.width =
       this.ink.height =
+      this.glyphAtlas.width =
+      this.glyphAtlas.height =
+      this.cellHash.width =
+      this.cellHash.height =
         1;
   }
 }

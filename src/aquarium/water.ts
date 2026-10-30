@@ -40,16 +40,23 @@ function bloom(
   c.save();
   c.translate(x, y);
   c.scale(rx, ry);
-  const g = c.createRadialGradient(0, 0, 0.08, 0, 0, 1);
-  g.addColorStop(0, `rgba(${color},${alpha})`);
-  g.addColorStop(0.48, `rgba(${color},${alpha * 0.65})`);
-  g.addColorStop(1, `rgba(${color},0)`);
+  const g = c.createRadialGradient(0, 0, 0, 0, 0, 1);
+  for (let step = 0; step <= 16; step++) {
+    const radius = step / 16;
+    g.addColorStop(
+      radius,
+      `rgba(${color},${alpha * (1 - radius * radius) ** 2})`,
+    );
+  }
   c.fillStyle = g;
   c.fillRect(-1, -1, 2, 2);
   c.restore();
 }
 
 export class PondWater {
+  get reflectionSource() {
+    return this.reflection;
+  }
   private floor = document.createElement("canvas");
   private reflection = document.createElement("canvas");
   private pixels = new Uint8ClampedArray(0);
