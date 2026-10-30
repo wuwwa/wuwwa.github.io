@@ -38,13 +38,13 @@ import Projects from "../components/Projects.astro";
         );
       }
       if (new URLSearchParams(location.search).get("pond") !== "classic") {
-        let environment = "sand";
+        let environment = "slate";
         try {
-          environment = localStorage.getItem("pond-environment") || "sand";
+          environment = localStorage.getItem("pond-environment") || "slate";
         } catch {}
         const requested = new URLSearchParams(location.search).get("water");
         if (requested) environment = requested;
-        if (!["sand", "jade", "indigo", "slate", "dusk"].includes(environment)) environment = "sand";
+        if (!["sand", "jade", "indigo", "slate", "dusk"].includes(environment)) environment = "slate";
         document.body.dataset.environment = environment;
         document.body.classList.toggle("dark", environment !== "sand");
       }

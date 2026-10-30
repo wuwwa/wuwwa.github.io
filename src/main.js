@@ -10,7 +10,7 @@ const mobileThemeButton = document.querySelector("#mobile-theme");
 const mobileLayout = matchMedia("(max-width: 1023px)");
 const classic = new URLSearchParams(location.search).get("pond") === "classic";
 const environments = ["sand", "jade", "indigo", "slate", "dusk"];
-let environment = document.body.dataset.environment || "sand";
+let environment = document.body.dataset.environment || "slate";
 let light = !matchMedia("(prefers-color-scheme: dark)").matches;
 try {
   const savedTheme = localStorage.getItem("pond-theme");
