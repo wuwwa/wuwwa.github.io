@@ -55,6 +55,30 @@ body.dark {
   --fg: #fff7f0;
   color-scheme: dark;
 }
+body[data-environment="sand"] {
+  --bg: #a19c83;
+  --fg: #202b27;
+}
+body[data-environment="jade"] {
+  --bg: #173435;
+  --fg: #f2efdc;
+}
+body[data-environment="indigo"] {
+  --bg: #26334e;
+  --fg: #f2efea;
+}
+body[data-environment="slate"] {
+  --bg: #525c6c;
+  --fg: #fff8e9;
+}
+body[data-environment="dusk"] {
+  --bg: #373333;
+  --fg: #f6eadc;
+}
+body[data-environment]:not([data-environment="classic"]) .intro,
+body[data-environment]:not([data-environment="classic"]) blockquote {
+  text-shadow: 0 0 3px var(--bg), 0 1px 1px var(--bg);
+}
 #pond {
   position: absolute;
   inset: 0;
@@ -476,6 +500,10 @@ body:not(.dark) #citation-card {
     padding: 0;
     background: none;
     display: flex;
+    min-width: 44px;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
     color: color-mix(in srgb, var(--fg) 35%, transparent);
   }
   #mobile-theme svg {
